@@ -3,7 +3,7 @@ allocation_policy:
     install_gpu_drivers: true
     policy:
       accelerators:
-        count: 4
+        count: 2
         type: nvidia-tesla-v100
       boot_disk:
         image: projects/projectofbob/global/images/image-ias-test
@@ -29,8 +29,6 @@ taskGroups:
           # Define GPU resources
           Name=gpu File=/dev/nvidia0
           Name=gpu File=/dev/nvidia1
-          Name=gpu File=/dev/nvidia2
-          Name=gpu File=/dev/nvidia3
           EOF
 
 
@@ -66,7 +64,7 @@ taskGroups:
           JobAcctGatherType=jobacct_gather/linux
           SlurmctldDebug=3
           SlurmdDebug=3
-          NodeName=$(hostname) CPUs=2 Gres=gpu:4 State=UNKNOWN
+          NodeName=$(hostname) CPUs=2 Gres=gpu:2 State=UNKNOWN
           PartitionName=googlebatch Nodes=$(hostname) Default=YES MaxTime=INFINITE State=UP
           EOF
 
