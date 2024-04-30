@@ -119,10 +119,10 @@ EOF
 def start_slurm():
     return f"""
 
-mkdir /var/spool/slurm
+mkdir -p /var/spool/slurm
 chmod 755 /var/spool/slurm/
 touch /var/log/slurmctld.log
-mkdir /var/log/slurm
+mkdir -p /var/log/slurm
 touch /var/log/slurm/slurmd.log /var/log/slurm/slurmctld.log
 touch /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
 
