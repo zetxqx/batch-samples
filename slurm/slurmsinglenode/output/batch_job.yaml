@@ -1,0 +1,84 @@
+allocation_policy:
+  instances:
+    install_gpu_drivers: true
+    policy:
+      accelerators:
+        count: 2
+        type: nvidia-tesla-v100
+      boot_disk:
+        image: projects/projectofbob/global/images/image-ias-test
+        size_gb: 50
+  location:
+    allowed_locations: zones/us-central1-a
+labels:
+  key: goog-batch-dynamic-workload-scheduler
+  value: 'true'
+logs_policy:
+  destination: CLOUD_LOGGING
+taskGroups:
+- task_count: 1
+  task_spec:
+    runnables:
+    - script:
+        text: |
+          #!/bin/bash
+
+          # Script to configure Slurm's GPU resources in gres.conf
+
+          cat <<EOF > /usr/local/etc/slurm/gres.conf
+          # Define GPU resources
+          Name=gpu File=/dev/nvidia0
+          Name=gpu File=/dev/nvidia1
+          EOF
+
+
+          cat <<EOF > /usr/local/etc/slurm/slurm.conf
+          SlurmctldHost=$(hostname)
+          AuthType=auth/munge
+          CryptoType=crypto/munge
+          ProctrackType=proctrack/pgid
+          ReturnToService=1
+          GresTypes=gpu
+          SlurmctldPidFile=/var/run/slurm/slurmctld.pid
+          SlurmctldPort=6817
+          SlurmdPidFile=/var/run/slurm/slurmd.pid
+          SlurmdPort=6818
+          SlurmdLogFile=/var/log/slurm/slurmd.log
+          SlurmctldLogFile=/var/log/slurm/slurmctld.log
+          SlurmdSpoolDir=/var/spool/slurmd
+          SlurmUser=root
+          StateSaveLocation=/var/spool/slurmctld
+          SwitchType=switch/none
+          TaskPlugin=task/none
+          InactiveLimit=0
+          KillWait=30
+          MinJobAge=300
+          SlurmctldTimeout=120
+          SlurmdTimeout=300
+          SchedulerType=sched/backfill
+          SelectType=select/linear
+          AccountingStorageType=accounting_storage/none
+          ClusterName=cluster
+          SelectType=select/cons_tres
+          SelectTypeParameters=CR_Core
+          JobAcctGatherType=jobacct_gather/linux
+          SlurmctldDebug=3
+          SlurmdDebug=3
+          NodeName=$(hostname) CPUs=2 Gres=gpu:2 State=UNKNOWN
+          PartitionName=googlebatch Nodes=$(hostname) Default=YES MaxTime=INFINITE State=UP
+          EOF
+
+
+          mkdir /var/spool/slurm
+          chmod 755 /var/spool/slurm/
+          touch /var/log/slurmctld.log
+          mkdir /var/log/slurm
+          touch /var/log/slurm/slurmd.log /var/log/slurm/slurmctld.log
+          touch /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
+
+          systemctl restart slurmd
+          sleep 1
+          systemctl restart slurmctld
+          sleep 2
+    - script:
+        text: sleep 1800
