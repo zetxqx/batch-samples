@@ -173,8 +173,7 @@ def createJobJSON(slurm_conf):
             }
         },
         "labels": {
-            "key": "goog-batch-dynamic-workload-scheduler",
-            "value": "true"
+            "goog-batch-dynamic-workload-scheduler": "true"
         },
         "logs_policy": {
             "destination": "CLOUD_LOGGING"
