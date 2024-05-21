@@ -127,9 +127,19 @@ touch /var/log/slurm/slurmd.log /var/log/slurm/slurmctld.log
 touch /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
 
 systemctl restart slurmd
-sleep 1
 systemctl restart slurmctld
-sleep 2
+MAX_RETRIES=5
+RETRY_INTERVAL=5
+for (( i=1; i<=MAX_RETRIES; i++ )); do
+    if systemctl is-active --quiet slurmd && systemctl is-active --quiet slurmctld; then
+        echo "Both slurmd and slurmctld are running."
+        exit 0
+    fi
+    echo "Services not running. Retrying in $RETRY_INTERVAL seconds..."
+    sleep $RETRY_INTERVAL
+done
+echo "Failed to start slurmd and/or slurmctld after $MAX_RETRIES attempts."
+exit 1
 """
 
 def createJobJSON(slurm_conf):
