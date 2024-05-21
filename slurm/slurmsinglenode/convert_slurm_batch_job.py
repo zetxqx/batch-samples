@@ -156,7 +156,7 @@ def createJobJSON(slurm_conf):
         ],
         "allocation_policy": {
             "location": {
-                "allowed_locations": "zones/us-central1-a"
+                "allowed_locations": ["zones/us-central1-a"]
             },
             "instances": {
                 "policy": {

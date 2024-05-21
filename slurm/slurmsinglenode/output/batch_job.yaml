@@ -9,7 +9,8 @@ allocation_policy:
         image: projects/projectofbob/global/images/image-ias-test
         size_gb: 50
   location:
-    allowed_locations: zones/us-central1-a
+    allowed_locations:
+    - zones/us-central1-a
 labels:
   goog-batch-dynamic-workload-scheduler: 'true'
 logs_policy:
