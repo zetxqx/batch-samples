@@ -64,13 +64,11 @@ SelectType=select/cons_tres
 """
 
     slurm_conf_script_not_fixed = f"MaxNodeCount={node_count}\nPartitionName=all  Nodes=ALL Default=yes\nEOF"
-    print(slurm_conf_script_fixed + slurm_conf_script_not_fixed)
     return slurm_conf_script_fixed + slurm_conf_script_not_fixed
 
 
 def start_slurm(slurm_config: SlurmJobConfig) -> str: 
     gpu_per_node = slurm_config.gpu_per_node
-    print(f"gpu_per_node is {gpu_per_node}", gpu_per_node)
     return f"""
 
 mkdir -p /var/spool/slurm
@@ -82,17 +80,17 @@ touch /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
 
 rm -rf /var/spool/slurmctld/*
 if grep -qFx $(/bin/hostname) <(head -1 $BATCH_HOSTS_FILE); then
-systemctl start slurmctld
-MAX_RETRIES=5
-RETRY_INTERVAL=5
-for (( i=1; i<=MAX_RETRIES; i++ )); do
-    if systemctl is-active --quiet slurmctld; then
-    echo "slurmctld are running."
-    break
-    fi
-    echo "Services not running. Retrying in $RETRY_INTERVAL seconds..."
-    sleep $RETRY_INTERVAL
-done
+    systemctl start slurmctld
+    MAX_RETRIES=5
+    RETRY_INTERVAL=5
+    for (( i=1; i<=MAX_RETRIES; i++ )); do
+        if systemctl is-active --quiet slurmctld; then
+        echo "slurmctld are running."
+        break
+        fi
+        echo "Services not running. Retrying in $RETRY_INTERVAL seconds..."
+        sleep $RETRY_INTERVAL
+    done
 fi
 /usr/local/sbin/slurmd -Z --conf "Gres=gpu:{gpu_per_node}"
 echo "printing slurmd.log"

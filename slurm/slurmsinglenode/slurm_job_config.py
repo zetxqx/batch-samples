@@ -51,5 +51,4 @@ def parse_slurm_script(file_path: str, skip_check: bool=False) -> SlurmJobConfig
 
 
     slurm_config = SlurmJobConfig(job_name, node_count, total_cpus, total_gpus, gpu_type, total_tasks)
-    print(slurm_config)
     return slurm_config

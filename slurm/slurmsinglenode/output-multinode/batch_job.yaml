@@ -3,7 +3,7 @@ allocation_policy:
     install_gpu_drivers: true
     policy:
       accelerators:
-        count: 4
+        count: 2
         type: nvidia-tesla-v100
       boot_disk:
         image: projects/projectofbob/global/images/image-ias-test
@@ -16,7 +16,7 @@ labels:
 logs_policy:
   destination: CLOUD_LOGGING
 taskGroups:
-- task_count: 4
+- task_count: 2
   task_spec:
     runnables:
     - script:
@@ -30,8 +30,6 @@ taskGroups:
           AutoDetect=nvml
           Name=gpu File=/dev/nvidia0
           Name=gpu File=/dev/nvidia1
-          Name=gpu File=/dev/nvidia2
-          Name=gpu File=/dev/nvidia3
           EOF
 
 
@@ -67,7 +65,7 @@ taskGroups:
           SlurmctldDebug=3
           SlurmdDebug=3
           SelectType=select/cons_tres
-          MaxNodeCount=4
+          MaxNodeCount=2
           PartitionName=all  Nodes=ALL Default=yes
           EOF
 
@@ -80,19 +78,19 @@ taskGroups:
 
           rm -rf /var/spool/slurmctld/*
           if grep -qFx $(/bin/hostname) <(head -1 $BATCH_HOSTS_FILE); then
-          systemctl start slurmctld
-          MAX_RETRIES=5
-          RETRY_INTERVAL=5
-          for (( i=1; i<=MAX_RETRIES; i++ )); do
-              if systemctl is-active --quiet slurmctld; then
-              echo "slurmctld are running."
-              break
-              fi
-              echo "Services not running. Retrying in $RETRY_INTERVAL seconds..."
-              sleep $RETRY_INTERVAL
-          done
+              systemctl start slurmctld
+              MAX_RETRIES=5
+              RETRY_INTERVAL=5
+              for (( i=1; i<=MAX_RETRIES; i++ )); do
+                  if systemctl is-active --quiet slurmctld; then
+                  echo "slurmctld are running."
+                  break
+                  fi
+                  echo "Services not running. Retrying in $RETRY_INTERVAL seconds..."
+                  sleep $RETRY_INTERVAL
+              done
           fi
-          /usr/local/sbin/slurmd -Z --conf "Gres=gpu:4"
+          /usr/local/sbin/slurmd -Z --conf "Gres=gpu:2"
           echo "printing slurmd.log"
           less -5 /var/log/slurm/slurmd.log
           echo "slurmd is running"

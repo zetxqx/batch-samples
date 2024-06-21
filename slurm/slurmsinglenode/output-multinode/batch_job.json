@@ -5,7 +5,7 @@
                 "runnables": [
                     {
                         "script": {
-                            "text": "#!/bin/bash\n\n# Script to configure Slurm's GPU resources in gres.conf\n\ncat <<EOF > /usr/local/etc/slurm/gres.conf\n# Define GPU resources\nAutoDetect=nvml\nName=gpu File=/dev/nvidia0\nName=gpu File=/dev/nvidia1\nName=gpu File=/dev/nvidia2\nName=gpu File=/dev/nvidia3\nEOF\n\n\ncat <<EOF > /usr/local/etc/slurm/slurm.conf\nClusterName=${BATCH_JOB_ID}\nSlurmctldHost=$(head -1 ${BATCH_HOSTS_FILE})\nAuthType=auth/munge\n\nProctrackType=proctrack/pgid\nReturnToService=2\n\n# For GPU resource\nGresTypes=gpu\n\nSlurmctldPidFile=/var/run/slurm/slurmctld.pid\nSlurmdPidFile=/var/run/slurm/slurmd.pid\n# slurm logs\nSlurmdLogFile=/var/log/slurm/slurmd.log\nSlurmctldLogFile=/var/log/slurm/slurmctld.log\nSlurmdSpoolDir=/var/spool/slurmd\n\nSlurmUser=root\nStateSaveLocation=/var/spool/slurmctld\nTaskPlugin=task/none\nSchedulerType=sched/backfill\nSelectTypeParameters=CR_Core\n\n# Turn off both types of accounting\nJobAcctGatherFrequency=0\nJobAcctGatherType=jobacct_gather/none\nAccountingStorageType=accounting_storage/none\n\nSlurmctldDebug=3\nSlurmdDebug=3\nSelectType=select/cons_tres\nMaxNodeCount=4\nPartitionName=all  Nodes=ALL Default=yes\nEOF\n\nmkdir -p /var/spool/slurm\nchmod 755 /var/spool/slurm/\ntouch /var/log/slurmctld.log\nmkdir -p /var/log/slurm\ntouch /var/log/slurm/slurmd.log /var/log/slurm/slurmctld.log\ntouch /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log\n\nrm -rf /var/spool/slurmctld/*\nif grep -qFx $(/bin/hostname) <(head -1 $BATCH_HOSTS_FILE); then\nsystemctl start slurmctld\nMAX_RETRIES=5\nRETRY_INTERVAL=5\nfor (( i=1; i<=MAX_RETRIES; i++ )); do\n    if systemctl is-active --quiet slurmctld; then\n    echo \"slurmctld are running.\"\n    break\n    fi\n    echo \"Services not running. Retrying in $RETRY_INTERVAL seconds...\"\n    sleep $RETRY_INTERVAL\ndone\nfi\n/usr/local/sbin/slurmd -Z --conf \"Gres=gpu:4\"\necho \"printing slurmd.log\"\nless -5 /var/log/slurm/slurmd.log\necho \"slurmd is running\"\n"
+                            "text": "#!/bin/bash\n\n# Script to configure Slurm's GPU resources in gres.conf\n\ncat <<EOF > /usr/local/etc/slurm/gres.conf\n# Define GPU resources\nAutoDetect=nvml\nName=gpu File=/dev/nvidia0\nName=gpu File=/dev/nvidia1\nEOF\n\n\ncat <<EOF > /usr/local/etc/slurm/slurm.conf\nClusterName=${BATCH_JOB_ID}\nSlurmctldHost=$(head -1 ${BATCH_HOSTS_FILE})\nAuthType=auth/munge\n\nProctrackType=proctrack/pgid\nReturnToService=2\n\n# For GPU resource\nGresTypes=gpu\n\nSlurmctldPidFile=/var/run/slurm/slurmctld.pid\nSlurmdPidFile=/var/run/slurm/slurmd.pid\n# slurm logs\nSlurmdLogFile=/var/log/slurm/slurmd.log\nSlurmctldLogFile=/var/log/slurm/slurmctld.log\nSlurmdSpoolDir=/var/spool/slurmd\n\nSlurmUser=root\nStateSaveLocation=/var/spool/slurmctld\nTaskPlugin=task/none\nSchedulerType=sched/backfill\nSelectTypeParameters=CR_Core\n\n# Turn off both types of accounting\nJobAcctGatherFrequency=0\nJobAcctGatherType=jobacct_gather/none\nAccountingStorageType=accounting_storage/none\n\nSlurmctldDebug=3\nSlurmdDebug=3\nSelectType=select/cons_tres\nMaxNodeCount=2\nPartitionName=all  Nodes=ALL Default=yes\nEOF\n\nmkdir -p /var/spool/slurm\nchmod 755 /var/spool/slurm/\ntouch /var/log/slurmctld.log\nmkdir -p /var/log/slurm\ntouch /var/log/slurm/slurmd.log /var/log/slurm/slurmctld.log\ntouch /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log\n\nrm -rf /var/spool/slurmctld/*\nif grep -qFx $(/bin/hostname) <(head -1 $BATCH_HOSTS_FILE); then\n    systemctl start slurmctld\n    MAX_RETRIES=5\n    RETRY_INTERVAL=5\n    for (( i=1; i<=MAX_RETRIES; i++ )); do\n        if systemctl is-active --quiet slurmctld; then\n        echo \"slurmctld are running.\"\n        break\n        fi\n        echo \"Services not running. Retrying in $RETRY_INTERVAL seconds...\"\n        sleep $RETRY_INTERVAL\n    done\nfi\n/usr/local/sbin/slurmd -Z --conf \"Gres=gpu:2\"\necho \"printing slurmd.log\"\nless -5 /var/log/slurm/slurmd.log\necho \"slurmd is running\"\n"
                         }
                     },
                     {
@@ -15,7 +15,7 @@
                     }
                 ]
             },
-            "task_count": 4
+            "task_count": 2
         }
     ],
     "allocation_policy": {
@@ -28,7 +28,7 @@
             "policy": {
                 "accelerators": {
                     "type": "nvidia-tesla-v100",
-                    "count": 4
+                    "count": 2
                 },
                 "boot_disk": {
                     "image": "projects/projectofbob/global/images/image-ias-test",
